@@ -3,10 +3,10 @@ options:
   bundleIdPrefix: com.scawful
   deploymentTarget:
     macOS: "14.0"
+    iOS: "17.0"
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    MACOSX_DEPLOYMENT_TARGET: "14.0"
 packages:
   GRDB:
     url: https://github.com/groue/GRDB.swift
@@ -15,13 +15,18 @@ targets:
   Cartograph:
     type: application
     platform: macOS
+    deploymentTarget: "14.0"
     sources:
-      - path: Cartograph/Sources
+      - path: Cartograph/Sources/Shared
+      - path: Cartograph/Sources/Data
+      - path: Cartograph/Sources/Services
+      - path: Cartograph/Sources/Views
       - path: Cartograph/Resources/Shared
     dependencies:
       - package: GRDB
     settings:
       base:
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
         CODE_SIGN_STYLE: Automatic
         PRODUCT_BUNDLE_IDENTIFIER: com.scawful.cartograph
         INFOPLIST_FILE: Cartograph/Resources/Shared/Info.plist
@@ -33,6 +38,53 @@ targets:
         CFBundleShortVersionString: "0.1.0"
         CFBundleVersion: "1"
         LSMinimumSystemVersion: "14.0"
+
+  Cartograph_iOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: Cartograph/Sources/Shared
+        excludes:
+          - "CartographApp.swift"
+          - "ContentView.swift"
+      - path: Cartograph/Sources/Data
+      - path: Cartograph/Sources/Services
+      - path: Cartograph/Sources/Views
+        excludes:
+          - "Sidebar/SidebarView.swift"
+      - path: Cartograph/Sources/iOS
+      - path: Cartograph/Resources/Shared
+        excludes:
+          - "Cartograph.entitlements"
+          - "Info.plist"
+    dependencies:
+      - package: GRDB
+    settings:
+      base:
+        CODE_SIGN_STYLE: Automatic
+        PRODUCT_BUNDLE_IDENTIFIER: com.scawful.cartograph.ios
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: false
+        INFOPLIST_FILE: Cartograph/Resources/iOS/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Cartograph/Resources/iOS/Cartograph_iOS.entitlements
+    info:
+      path: Cartograph/Resources/iOS/Info.plist
+      properties:
+        CFBundleDisplayName: Cartograph
+        CFBundleName: Cartograph
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        UIRequiresFullScreen: false
+        UILaunchScreen: {}
+        UISupportsDocumentBrowser: true
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: "SQLite Database"
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - "public.database"
+              - "public.data"
+
   CartographTests:
     type: bundle.unit-test
     platform: macOS
@@ -40,6 +92,7 @@ targets:
       - path: Cartograph/Tests
     dependencies:
       - target: Cartograph
+
 schemes:
   Cartograph:
     build:
@@ -50,3 +103,9 @@ schemes:
     test:
       targets:
         - CartographTests
+  Cartograph_iOS:
+    build:
+      targets:
+        Cartograph_iOS: all
+    run:
+      config: Debug

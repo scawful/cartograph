@@ -44,7 +44,11 @@ struct SyntaxTokenizer {
         case .string:    return CartographTheme.CodeColors.string
         case .comment:   return CartographTheme.CodeColors.comment
         case .number:    return CartographTheme.CodeColors.type   // orange — reusing type slot
+        #if os(macOS)
         case .decorator: return Color(nsColor: NSColor(red: 0.82, green: 0.82, blue: 0.46, alpha: 1.0))
+        #else
+        case .decorator: return Color(red: 0.82, green: 0.82, blue: 0.46)
+        #endif
         case .type:      return CartographTheme.CodeColors.type
         case .plain:     return CartographTheme.CodeColors.text
         }

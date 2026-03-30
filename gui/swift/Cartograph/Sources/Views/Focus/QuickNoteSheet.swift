@@ -6,7 +6,11 @@ struct QuickNoteSheet: View {
     @State private var noteText = ""
 
     private var notesDir: URL {
+        #if os(macOS)
         FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".cartograph")
+        #else
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("cartograph")
+        #endif
     }
 
     var body: some View {
@@ -25,7 +29,11 @@ struct QuickNoteSheet: View {
                 .frame(minHeight: 120)
                 .scrollContentBackground(.hidden)
                 .padding(CartographTheme.Spacing.sm)
+                #if os(macOS)
                 .background(Color(nsColor: .textBackgroundColor))
+                #else
+                .background(Color(.secondarySystemBackground))
+                #endif
                 .clipShape(RoundedRectangle(cornerRadius: CartographTheme.Radius.md))
 
             HStack {
@@ -39,7 +47,9 @@ struct QuickNoteSheet: View {
             }
         }
         .padding(CartographTheme.Spacing.xl)
+        #if os(macOS)
         .frame(width: 400, height: 260)
+        #endif
         .onAppear {
             if let name = symbolName {
                 noteText = "While reading \(name): "

@@ -37,7 +37,11 @@ class ReviewStore: ObservableObject {
     @Published var items: [ReviewItem] = []
 
     private var fileURL: URL {
+        #if os(macOS)
         let dir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".cartograph")
+        #else
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("cartograph")
+        #endif
         return dir.appendingPathComponent("reviews.json")
     }
 

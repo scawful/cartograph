@@ -1,36 +1,35 @@
 import SwiftUI
 
-struct CodeLine: Identifiable {
-    let num: Int
-    let text: String
-    var id: Int { num }
-}
-
-struct CodeViewerView: View {
+struct iOSCodeViewerView: View {
     let symbol: SymbolRecord
-    let projectRoot: String
     let database: CartographDatabase
 
     @State private var codeLines: [CodeLine] = []
-    @State private var fileSymbols: [SymbolRecord] = []
     @State private var loadError: String?
-    @State private var showExplainPanel = false
+    @State private var showExplainSheet = false
     @State private var language: String = "python"
+
+    private var projectRoot: String {
+        (try? database.getProjectStats())?.rootPath ?? ""
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
-            HStack {
+            // Symbol header
+            HStack(spacing: CartographTheme.Spacing.sm) {
                 if let kind = symbol.symbolKind {
                     Image(systemName: kind.icon)
                         .foregroundStyle(kind.color)
                 }
-                Text(symbol.qualifiedName ?? symbol.name)
-                    .font(.headline)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(symbol.qualifiedName ?? symbol.name)
+                        .font(.subheadline.bold())
+                        .lineLimit(2)
+                    Text(symbol.locationString)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
-                Text(symbol.locationString)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
             .padding(CartographTheme.Spacing.md)
 
@@ -57,7 +56,7 @@ struct CodeViewerView: View {
                                 .id(entry.num)
                             }
                         }
-                        .padding(CartographTheme.Spacing.sm)
+                        .padding(CartographTheme.Spacing.xs)
                     }
                     .background(CartographTheme.CodeColors.background)
                     .onAppear {
@@ -70,32 +69,29 @@ struct CodeViewerView: View {
                 }
             }
         }
+        .navigationTitle(symbol.name)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .automatic) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    showExplainPanel.toggle()
+                    showExplainSheet = true
                 } label: {
                     Label("Explain", systemImage: "lightbulb")
                 }
             }
         }
-        #if os(macOS)
-        .inspector(isPresented: $showExplainPanel) {
-            ExplainPanelView(symbol: symbol, projectRoot: projectRoot)
-                .inspectorColumnWidth(min: 280, ideal: 340, max: 500)
-        }
-        #else
-        .sheet(isPresented: $showExplainPanel) {
+        .sheet(isPresented: $showExplainSheet) {
             NavigationStack {
                 ExplainPanelView(symbol: symbol, projectRoot: projectRoot)
+                    .navigationTitle("Explain")
+                    .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showExplainPanel = false }
+                            Button("Done") { showExplainSheet = false }
                         }
                     }
             }
         }
-        #endif
         .task(id: symbol.id) {
             loadSource()
         }
@@ -107,13 +103,12 @@ struct CodeViewerView: View {
             return
         }
 
-        let fullPath = "\(projectRoot)/\(filePath)"
+        let root = projectRoot
+        let fullPath = "\(root)/\(filePath)"
         do {
             let content = try String(contentsOfFile: fullPath, encoding: .utf8)
             let rawLines = content.components(separatedBy: "\n")
             codeLines = rawLines.enumerated().map { CodeLine(num: $0.offset + 1, text: $0.element) }
-            fileSymbols = (try? database.getFileSymbols(filePath: filePath)) ?? []
-            // Infer language from extension
             let ext = (filePath as NSString).pathExtension.lowercased()
             switch ext {
             case "ts", "tsx": language = "typescript"
@@ -125,33 +120,5 @@ struct CodeViewerView: View {
             loadError = "Could not read \(filePath): \(error.localizedDescription)"
             codeLines = []
         }
-    }
-}
-
-struct CodeLineRow: View {
-    let lineNum: Int
-    let text: String
-    let isHighlighted: Bool
-    var language: String = "python"
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 0) {
-            Text("\(lineNum)")
-                .font(CartographTheme.codeFontSmall)
-                .foregroundStyle(CartographTheme.CodeColors.lineNumber)
-                .frame(width: 50, alignment: .trailing)
-                .padding(.trailing, CartographTheme.Spacing.sm)
-
-            Rectangle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 1)
-                .padding(.trailing, CartographTheme.Spacing.sm)
-
-            Text(text.isEmpty ? AttributedString(" ") : SyntaxTokenizer.highlight(text, language: language))
-                .font(CartographTheme.codeFont)
-                .textSelection(.enabled)
-        }
-        .padding(.vertical, 1)
-        .background(isHighlighted ? CartographTheme.CodeColors.highlight : Color.clear)
     }
 }

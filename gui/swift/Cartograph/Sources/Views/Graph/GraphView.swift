@@ -254,7 +254,11 @@ struct GraphView: View {
                 }
             }
         }
+        #if os(macOS)
         .background(Color(nsColor: .controlBackgroundColor))
+        #else
+        .background(Color(.systemBackground))
+        #endif
     }
 
     // MARK: - Gestures
