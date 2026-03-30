@@ -1,12 +1,14 @@
 name: Cartograph
 options:
   bundleIdPrefix: com.scawful
+  developmentTeam: SN8Z922TT6
   deploymentTarget:
     macOS: "14.0"
     iOS: "17.0"
 settings:
   base:
     SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: SN8Z922TT6
 packages:
   GRDB:
     url: https://github.com/groue/GRDB.swift
