@@ -1,0 +1,8 @@
+[project]
+name = "cartograph"
+description = "Local-first codebase tutorial platform with AST-level symbol graphs, reading paths, and spaced repetition"
+stage = "alpha"
+languages = ["python"]
+build_system = "setuptools"
+platforms = ["macos", "linux"]
+tags = ["learning", "ast", "code-analysis", "tutorial"]

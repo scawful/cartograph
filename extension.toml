@@ -1,0 +1,23 @@
+name = "cartograph"
+description = "Codebase tutorial platform: AST symbol graphs, reading paths, and code exploration tools"
+
+knowledge_mounts = []
+skill_roots = []
+model_registries = []
+
+cli_modules = [
+  "cartograph.cli",
+]
+
+agent_modules = []
+
+policies = []
+
+[hooks]
+before_context_read = []
+after_context_write = []
+before_agent_dispatch = []
+
+[mcp_tools]
+module = "cartograph.mcp_tools"
+factory = "register_mcp_tools"
