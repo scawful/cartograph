@@ -10,6 +10,7 @@ struct CodeViewerView: View {
     let symbol: SymbolRecord
     let projectRoot: String
     let database: CartographDatabase
+    var sourceProvider: SourceProvider?
 
     @State private var codeLines: [CodeLine] = []
     @State private var fileSymbols: [SymbolRecord] = []
@@ -107,23 +108,26 @@ struct CodeViewerView: View {
             return
         }
 
-        let fullPath = "\(projectRoot)/\(filePath)"
-        do {
-            let content = try String(contentsOfFile: fullPath, encoding: .utf8)
-            let rawLines = content.components(separatedBy: "\n")
-            codeLines = rawLines.enumerated().map { CodeLine(num: $0.offset + 1, text: $0.element) }
-            fileSymbols = (try? database.getFileSymbols(filePath: filePath)) ?? []
-            // Infer language from extension
-            let ext = (filePath as NSString).pathExtension.lowercased()
-            switch ext {
-            case "ts", "tsx": language = "typescript"
-            case "js", "jsx": language = "javascript"
-            default: language = "python"
+        let provider = sourceProvider ?? LocalSourceProvider(projectRoot: projectRoot)
+
+        Task {
+            do {
+                let content = try await provider.fetchSource(relativePath: filePath)
+                let rawLines = content.components(separatedBy: "\n")
+                codeLines = rawLines.enumerated().map { CodeLine(num: $0.offset + 1, text: $0.element) }
+                fileSymbols = (try? database.getFileSymbols(filePath: filePath)) ?? []
+                // Infer language from extension
+                let ext = (filePath as NSString).pathExtension.lowercased()
+                switch ext {
+                case "ts", "tsx": language = "typescript"
+                case "js", "jsx": language = "javascript"
+                default: language = "python"
+                }
+                loadError = nil
+            } catch {
+                loadError = "Could not read \(filePath): \(error.localizedDescription)"
+                codeLines = []
             }
-            loadError = nil
-        } catch {
-            loadError = "Could not read \(filePath): \(error.localizedDescription)"
-            codeLines = []
         }
     }
 }

@@ -407,6 +407,18 @@ def _cmd_explain(args: argparse.Namespace) -> None:
         print(result["explanation"])
 
 
+def _cmd_serve(args: argparse.Namespace) -> None:
+    """Start the source server for remote clients."""
+    from ..serve import run_server
+
+    project_root = Path(args.path).resolve()
+    if not project_root.is_dir():
+        print(f"Error: {project_root} is not a directory", file=sys.stderr)
+        sys.exit(1)
+
+    run_server(project_root, host=args.host, port=args.port)
+
+
 def _cmd_graph_stats(args: argparse.Namespace) -> None:
     """Show symbol graph statistics."""
     from ..graph import SymbolGraph
@@ -521,6 +533,13 @@ def main(argv: list[str] | None = None) -> None:
     p_explain.add_argument("--provider", default="ollama", choices=["ollama", "gemini"])
     p_explain.add_argument("--model", "-m", help="Model name")
     p_explain.set_defaults(func=_cmd_explain)
+
+    # serve
+    p_serve = subparsers.add_parser("serve", help="Serve source files over HTTP for remote clients")
+    p_serve.add_argument("path", nargs="?", default=".", help="Project root (default: .)")
+    p_serve.add_argument("--port", type=int, default=11443, help="Port (default: 11443)")
+    p_serve.add_argument("--host", default="0.0.0.0", help="Host (default: 0.0.0.0)")
+    p_serve.set_defaults(func=_cmd_serve)
 
     # graph
     p_graph = subparsers.add_parser("graph", help="Symbol graph operations")

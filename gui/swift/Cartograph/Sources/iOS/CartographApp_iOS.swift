@@ -4,11 +4,13 @@ import UniformTypeIdentifiers
 @main
 struct CartographApp_iOS: App {
     @StateObject private var appState = AppState_iOS()
+    @StateObject private var sourceManager = SourceProviderManager()
 
     var body: some Scene {
         WindowGroup {
             iOSContentView()
                 .environmentObject(appState)
+                .environmentObject(sourceManager)
         }
     }
 }

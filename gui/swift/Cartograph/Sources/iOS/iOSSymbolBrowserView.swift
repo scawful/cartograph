@@ -2,6 +2,7 @@ import SwiftUI
 
 struct iOSSymbolBrowserView: View {
     let database: CartographDatabase
+    var sourceProvider: SourceProvider?
 
     @State private var searchText = ""
     @State private var selectedKind: String?
@@ -46,7 +47,7 @@ struct iOSSymbolBrowserView: View {
             }
         }
         .navigationDestination(for: SymbolRecord.self) { symbol in
-            iOSCodeViewerView(symbol: symbol, database: database)
+            iOSCodeViewerView(symbol: symbol, database: database, sourceProvider: sourceProvider)
         }
         .onChange(of: searchText) { _, _ in performSearch() }
         .onChange(of: selectedKind) { _, _ in performSearch() }
