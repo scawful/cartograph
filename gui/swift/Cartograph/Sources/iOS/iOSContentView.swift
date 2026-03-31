@@ -4,6 +4,7 @@ struct iOSContentView: View {
     @EnvironmentObject var appState: AppState_iOS
     @EnvironmentObject var sourceManager: SourceProviderManager
     @State private var selectedTab = 0
+    @State private var showProjectPicker = false
 
     var body: some View {
         if let db = appState.database {
@@ -11,6 +12,15 @@ struct iOSContentView: View {
                 NavigationStack {
                     DashboardView(database: db)
                         .navigationTitle(appState.projectStats?.name ?? "Dashboard")
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Button {
+                                    showProjectPicker = true
+                                } label: {
+                                    Label("Projects", systemImage: "square.stack.3d.up")
+                                }
+                            }
+                        }
                 }
                 .tabItem { Label("Dashboard", systemImage: "gauge.with.dots.needle.33percent") }
                 .tag(0)
@@ -40,16 +50,13 @@ struct iOSContentView: View {
                 .tag(3)
 
                 NavigationStack {
-                    SourceSettingsView(manager: sourceManager)
-                }
-                .tabItem { Label("Source", systemImage: "network") }
-                .tag(4)
-
-                NavigationStack {
                     FocusTimerView()
                 }
                 .tabItem { Label("Focus", systemImage: "timer") }
-                .tag(5)
+                .tag(4)
+            }
+            .sheet(isPresented: $showProjectPicker) {
+                ProjectLibraryView()
             }
         } else {
             iOSWelcomeView()
